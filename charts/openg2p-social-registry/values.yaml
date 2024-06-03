@@ -127,7 +127,7 @@ istio:
       mode: SIMPLE
       credentialName: ""
 
-logging:
+loggingFlow:
   enabled: true
   outputRef: opensearch
   extraLocalOutputRefs: []

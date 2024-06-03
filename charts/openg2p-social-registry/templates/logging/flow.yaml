@@ -1,4 +1,4 @@
-{{- if .Values.logging.enabled }}
+{{- if .Values.loggingFlow.enabled }}
 {{- if .Values.odoo.enabled }}
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Flow
@@ -7,17 +7,17 @@ metadata:
 spec:
   filters:
   - parser:
-      {{- include "common.tplvalues.render" (dict "value" .Values.logging.parser "context" $) | nindent 4 }}
-  {{- if .Values.logging.extraFilters }}
-  {{- include "common.tplvalues.render" (dict "value" .Values.logging.extraFilters "context" $) | nindent 2 }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.loggingFlow.parser "context" $) | nindent 4 }}
+  {{- if .Values.loggingFlow.extraFilters }}
+  {{- include "common.tplvalues.render" (dict "value" .Values.loggingFlow.extraFilters "context" $) | nindent 2 }}
   {{- end }}
   localOutputRefs:
-  - {{ .Values.logging.outputRef }}
-  {{- if .Values.logging.extraLocalOutputRefs }}
-  {{- include "common.tplvalues.render" (dict "value" .Values.logging.extraLocalOutputRefs "context" $) | nindent 2 }}
+  - {{ .Values.loggingFlow.outputRef }}
+  {{- if .Values.loggingFlow.extraLocalOutputRefs }}
+  {{- include "common.tplvalues.render" (dict "value" .Values.loggingFlow.extraLocalOutputRefs "context" $) | nindent 2 }}
   {{- end }}
-  {{- if .Values.logging.globalOutputRefs }}
-  globalOutputRefs: {{- include "common.tplvalues.render" (dict "value" .Values.logging.globalOutputRefs "context" $) | nindent 2 }}
+  {{- if .Values.loggingFlow.globalOutputRefs }}
+  globalOutputRefs: {{- include "common.tplvalues.render" (dict "value" .Values.loggingFlow.globalOutputRefs "context" $) | nindent 2 }}
   {{- end }}
   match:
   - select:
