@@ -1,9 +1,11 @@
 global:
   socialRegistryHostname: socialregistry.openg2p.sandbox.net
   odkHostname: odk.openg2p.sandbox.net
+  opensearchHostname: opensearch.openg2p.sandbox.net
   minioHostname: minio.openg2p.sandbox.net
   mailname: openg2p.sandbox.net
   sysAdminEmail: admin@openg2p.sandbox.net
+  keycloakIssuerUrl: https://keycloak.openg2p.sandbox.net/realms/master
 
 odoo:
   enabled: true
@@ -30,6 +32,7 @@ odoo:
   livenessProbe:
     enabled: false
 
+  # TODO: Template the following variables from helm values, instead of hardcoding
   extraEnvVars:
   - name: ODOO_SKIP_MODULES_UPDATE
     value: "yes"
@@ -41,7 +44,7 @@ odoo:
     value: web,queue_job
   # not using bitnami smtpHost and smtpPort variables, because they need user and pass as well.
   - name: OPENG2P_SMTP_HOST
-    value: "social-registry-mail"
+    value: '{{ .Release.Name }}-mail'
   - name: OPENG2P_SMTP_PORT_NUMBER
     value: "25"
   - name: LOG_HANDLER
@@ -59,7 +62,7 @@ odk-central:
   odk-central-backend:
     envVars:
       EMAIL_HOST: '{{ .Release.Name }}-mail'
-      OIDC_ISSUER_URL: https://keycloak.openg2p.sandbox.net/realms/master
+      OIDC_ISSUER_URL: '{{ .Values.global.keycloakIssuerUrl }}'
       OIDC_CLIENT_ID: ""
       OIDC_CLIENT_SECRET: ""
 
@@ -69,13 +72,17 @@ minio:
     enabled: true
     size: 16Gi
 
+  oidcWellKnownConfigUrl: '{{ .Values.global.keycloakIssuerUrl }}/.well-known/openid-configuration'
+  oidcClientId: openg2p-sr-minio
+  oidcClientSecret: ''
+
   extraEnvVars:
   - name: MINIO_IDENTITY_OPENID_CONFIG_URL
-    value: http://keycloak.openg2p.sandbox.net/realms/master/.well-known/openid-configuration
+    value: '{{ tpl .Values.oidcWellKnownConfigUrl $ }}'
   - name: MINIO_IDENTITY_OPENID_CLIENT_ID
-    value: openg2p-sr-minio
+    value: '{{ tpl .Values.oidcClientId $ }}'
   - name: MINIO_IDENTITY_OPENID_CLIENT_SECRET
-    value: ""
+    value: '{{ tpl .Values.oidcClientSecret $ }}'
   - name: MINIO_IDENTITY_OPENID_DISPLAY_NAME
     value: Keycloak
   - name: MINIO_IDENTITY_OPENID_CLAIM_NAME
@@ -107,6 +114,200 @@ minio:
         mode: SIMPLE
         credentialName: ""
 
+opensearch:
+  enabled: false
+
+  oidcWellKnownConfigUrl: '{{ .Values.global.keycloakIssuerUrl }}/.well-known/openid-configuration'
+  oidcClientId: openg2p-sr-opensearch
+  oidcClientSecret: ''
+
+  master:
+    replicaCount: 1
+    persistence:
+      size: 8Gi
+    heapSize: 256m
+    masterOnly: false
+
+  data:
+    replicaCount: 0
+    # persistence:
+    #   size: 8Gi
+
+  coordinating:
+    replicaCount: 0
+
+  ingest:
+    replicaCount: 0
+
+  extraVolumes:
+  - name: security-config
+    configMap:
+      name: '{{ .Release.Name }}-opensearch-custom-config'
+
+  extraVolumeMounts:
+  - name: security-config
+    mountPath: /opt/bitnami/opensearch/config.default/opensearch-security/config.yml
+    subPath: opensearch-security-config.yml
+
+  security:
+    enabled: true
+    tls:
+      restEncryption: true
+    extraConfig: |-
+      _meta:
+        type: "config"
+        config_version: 2
+
+      config:
+        dynamic:
+          http:
+            anonymous_auth_enabled: false
+            xff:
+              enabled: false
+          authc:
+            basic_internal_auth_domain:
+              http_enabled: true
+              transport_enabled: true
+              order: 0
+              description: "Authenticate via HTTP Basic against internal users database"
+              http_authenticator:
+                type: basic
+                challenge: false
+              authentication_backend:
+                type: internal
+            openid_auth_domain:
+              http_enabled: true
+              transport_enabled: true
+              order: 1
+              description: "Authenticate via Keycloak OIDC"
+              http_authenticator:
+                type: openid
+                challenge: false
+                config:
+                  subject_key: preferred_username
+                  roles_key: groups
+                  openid_connect_url: '{{ tpl .Values.opensearch.oidcWellKnownConfigUrl $ }}'
+              authentication_backend:
+                type: noop
+            kerberos_auth_domain:
+              http_enabled: false
+              transport_enabled: false
+            proxy_auth_domain:
+              http_enabled: false
+              transport_enabled: false
+            jwt_auth_domain:
+              http_enabled: false
+              transport_enabled: false
+            clientcert_auth_domain:
+              http_enabled: false
+              transport_enabled: false
+            ldap:
+              http_enabled: false
+              transport_enabled: false
+          authz: {}
+
+  dashboards:
+    enabled: true
+    replicaCount: 1
+
+    extraVolumes:
+    - name: dashboards-config
+      configMap:
+        name: '{{ .Release.Name }}-opensearch-custom-config'
+
+    extraVolumeMounts:
+    - name: dashboards-config
+      mountPath: /opt/bitnami/opensearch-dashboards/config.default/opensearch_dashboards.yml
+      subPath: opensearch_dashboards.yml
+
+    extraConfig: |-
+      path:
+        data: /bitnami/opensearch-dashboards/data
+      opensearch:
+        requestHeadersAllowlist:
+          - authorization
+          - securitytenant
+        ssl:
+          verificationMode: none
+      opensearch_security:
+        auth:
+          type:
+          # - basicauth # Enable this to allow password based auth also
+          - openid
+          multiple_auth_enabled: true
+        openid:
+          connect_url: '{{ tpl .Values.opensearch.oidcWellKnownConfigUrl $ }}'
+          client_id: '{{ tpl .Values.opensearch.oidcClientId $ }}'
+          client_secret: '{{ tpl .Values.opensearch.oidcClientSecret $ }}'
+          base_redirect_url: 'https://{{ .Values.global.opensearchHostname }}'
+          logout_url: ""
+        ui:
+          openid:
+            login:
+              buttonname: "Log in with Keycloak"
+        multitenancy:
+          enabled: false # Enable this if multi tenancy is needed.
+          tenants:
+            preferred:
+            - Global
+            - Private
+        readonly_mode:
+          roles:
+          - kibana_read_only
+
+  loggingOutput:
+    enabled: false
+    type: opensearch
+    scheme: https
+    host: '{{ printf "%s-opensearch.%s" (.Release.Name) (.Release.Namespace) }}'
+    port: "9200"
+    user: logstash
+    passwordFrom:
+      secretKeyRef:
+        key: logstash-password
+        name: '{{ include "socialRegistry.fullname" . }}'
+    extraConfig:
+      ssl_verify: false
+      logstash_format: true
+      suppress_type_name: true
+      buffer:
+        flush_interval: 10s
+        flush_mode: interval
+  istio:
+    enabled: true
+    virtualservice:
+      enabled: true
+      host: ""
+      gateway: "internal"
+      destination: '{{ .Release.Name }}-opensearch-dashboards'
+      destinationPort: "5601"
+    gateway:
+      enabled: false
+      host: ""
+      ingressController:
+        istio: ingressgateway
+      httpTlsRedirect: true
+      httpEnabled: true
+      httpsEnabled: false
+      tls:
+        mode: SIMPLE
+        credentialName: ""
+
+loggingFlow:
+  enabled: false
+  outputRef: '{{ .Release.Name }}-opensearch'
+  extraLocalOutputRefs: []
+  globalOutputRefs: []
+  parser:
+    key_name: message
+    parse:
+      type: regexp
+      expression: /^(?<asctime>(\S+)(\s)(\S+))\s+(?<pid>\S+)\s+(?<levelname>\S+)\s+(?<dbname>\S+)\s+(?<name>\S+)\s+(?<message>.*)$/
+    remove_key_name_field: true
+    replace_invalid_sequence: true
+    reserve_data: true
+  extraFilters: []
+
 istio:
   enabled: true
   virtualservice:
@@ -126,21 +327,6 @@ istio:
     tls:
       mode: SIMPLE
       credentialName: ""
-
-loggingFlow:
-  enabled: true
-  outputRef: opensearch
-  extraLocalOutputRefs: []
-  globalOutputRefs: []
-  parser:
-    key_name: message
-    parse:
-      type: regexp
-      expression: /^(?<asctime>(\S+)(\s)(\S+))\s+(?<pid>\S+)\s+(?<levelname>\S+)\s+(?<dbname>\S+)\s+(?<name>\S+)\s+(?<message>.*)$/
-    remove_key_name_field: true
-    replace_invalid_sequence: true
-    reserve_data: true
-  extraFilters: []
 
 postgresIngress:
   enabled: false

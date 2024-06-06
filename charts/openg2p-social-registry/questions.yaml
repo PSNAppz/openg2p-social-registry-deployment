@@ -11,16 +11,19 @@ questions:
   description: Enabling this install Minio for document store.
   type: Boolean
   label: Install Minio?
+- variable: global.keycloakIssuerUrl
+  description: Keycloak Issuer Url used in all components
+  type: string
+  label: Keycloak Issuer URL
+- variable: loggingFlow.enabled
+  description: Enabling this will allow Fluentd to capture logs into OpenSearch.
+  type: string
+  label: Fluentd Logs Flow?
 
 - variable: global.odkHostname
   description: Hostname for ODK Central
   type: string
   label: ODK Central Hostname
-  group: ODK Central Settings
-- variable: odk-central.odk-central-backend.envVars.OIDC_ISSUER_URL
-  description: OIDC Issuer Url for ODK Central login
-  type: string
-  label: OIDC Issuer URL
   group: ODK Central Settings
 - variable: odk-central.odk-central-backend.envVars.OIDC_CLIENT_ID
   description: OIDC Client ID for ODK Central login
@@ -38,22 +41,33 @@ questions:
   type: string
   label: Minio Console Hostname
   group: Minio Settings
+- variable: minio.oidcClientId
+  description: OIDC Client ID for Minio Console login
+  type: string
+  label: OIDC Client ID
+  group: Minio Settings
+- variable: minio.oidcClientSecret
+  description: OIDC Client Secret for Minio Console login
+  type: string
+  label: OIDC Client Secret
+  group: Minio Settings
 
-# The following configs will not work, because of Array type
-# These will have to be edited from yaml.
-# - variable: minio.extraEnvVars[0].value
-#   default: http://keycloak.sandbox.openg2p.net/realms/master/.well-known/openid-configuration
-#   description: OIDC Well know config URL for Minio Console login
-#   type: string
-#   label: OIDC Well-known Config URL
-#   group: Minio Settings
-# - variable: minio.extraEnvVars[1].value
-#   description: OIDC Client ID for Minio Console login
-#   type: string
-#   label: OIDC Client ID
-#   group: Minio Settings
-# - variable: minio.extraEnvVars[2].value
-#   description: OIDC Client Secret for Minio Console login
-#   type: string
-#   label: OIDC Client Secret
-#   group: Minio Settings
+- variable: global.opensearchHostname
+  description: Hostname for OpenSearch Dashboards
+  type: string
+  label: OpenSearch Dashboards Hostname
+  group: OpenSearch Settings
+- variable: opensearch.oidcClientId
+  description: OIDC Client ID for OpenSearch login
+  type: string
+  label: OIDC Client ID
+  group: OpenSearch Settings
+- variable: opensearch.oidcClientSecret
+  description: OIDC Client Secret for OpenSearch login
+  type: string
+  label: OIDC Client Secret
+  group: OpenSearch Settings
+- variable: opensearch.loggingOutput.enabled
+  description: Enabling this will allow Fluentd to send logs into this OpenSearch.
+  type: string
+  label: Fluentd Logs Output?

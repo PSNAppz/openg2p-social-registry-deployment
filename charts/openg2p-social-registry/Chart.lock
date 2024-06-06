@@ -5,11 +5,14 @@ dependencies:
 - name: minio
   repository: oci://registry-1.docker.io/bitnamicharts
   version: 12.12.2
+- name: opensearch
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 1.2.0
 - name: odk-central
   repository: https://openg2p.github.io/openg2p-helm
   version: v2024.1.0
 - name: mail
   repository: https://openg2p.github.io/openg2p-helm
   version: 1.2.0
-digest: sha256:dd42fece4d31f8f40a378d390e284464109d4890e116f50e5d2ed97c84ade7ad
-generated: "2024-05-31T14:46:02.265192934+05:30"
+digest: sha256:a04057033b86e2e97fc70b9c20196bd98c843a0f468c8621be915a63830ffe2b
+generated: "2024-06-06T02:23:48.106232831+05:30"
