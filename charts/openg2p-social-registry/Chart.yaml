@@ -5,25 +5,29 @@ type: application
 version: 0.0.0-develop
 dependencies:
 - name: odoo
-  repository: oci://registry-1.docker.io/bitnamicharts
   version: 21.6.5
+  repository: oci://registry-1.docker.io/bitnamicharts
   condition: odoo.enabled
-- name: minio
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 12.12.2
-  condition: minio.enabled
-- name: opensearch
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 1.2.0
-  condition: opensearch.enabled
-- name: odk-central
-  version: v2024.1.0
-  repository: https://openg2p.github.io/openg2p-helm
-  condition: odk-central.enabled
 - name: mail
   version: 1.2.0
   repository: https://openg2p.github.io/openg2p-helm
   condition: mail.enabled
+- name: minio
+  version: 12.12.2
+  repository: oci://registry-1.docker.io/bitnamicharts
+  condition: minio.enabled
+- name: odk-central
+  version: v2024.1.0
+  repository: https://openg2p.github.io/openg2p-helm
+  condition: odk-central.enabled
+- name: opensearch
+  version: 1.2.0
+  repository: oci://registry-1.docker.io/bitnamicharts
+  condition: opensearch.enabled
+- name: superset
+  version: 0.12.11
+  repository: https://apache.github.io/superset
+  condition: superset.enabled
 # TODO: Add Keymanager and other dependencies.
 icon: https://openg2p.github.io/openg2p-helm/openg2p-logo.png
 annotations:

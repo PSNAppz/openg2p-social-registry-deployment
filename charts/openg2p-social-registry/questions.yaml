@@ -4,13 +4,21 @@ questions:
   type: string
   label: Hostname
 - variable: odk-central.enabled
-  description: Enabling this install ODK Central.
+  description: Enabling this installs ODK Central.
   type: Boolean
   label: Install ODK Central?
 - variable: minio.enabled
-  description: Enabling this install Minio for document store.
+  description: Enabling this installs Minio for document store.
   type: Boolean
   label: Install Minio?
+- variable: opensearch.enabled
+  description: Enabling this installs OpenSearch
+  type: Boolean
+  label: Install OpenSearch?
+- variable: superset.enabled
+  description: Enabling this installs Superset for reporting
+  type: Boolean
+  label: Install Superset?
 - variable: global.keycloakIssuerUrl
   description: Keycloak Issuer Url used in all components
   type: string
@@ -69,5 +77,27 @@ questions:
   group: OpenSearch Settings
 - variable: opensearch.loggingOutput.enabled
   description: Enabling this will allow Fluentd to send logs into this OpenSearch.
-  type: string
+  type: Boolean
   label: Fluentd Logs Output?
+  group: OpenSearch Settings
+
+- variable: global.supersetHostname
+  description: Hostname for Superset Dashboards
+  type: string
+  label: Superset Hostname
+  group: Superset Settings
+- variable: superset.oidcClientId
+  description: OIDC Client ID for Superset login
+  type: string
+  label: OIDC Client ID
+  group: Superset Settings
+- variable: superset.oidcClientSecret
+  description: OIDC Client Secret for Superset login
+  type: string
+  label: OIDC Client Secret
+  group: Superset Settings
+- variable: superset.supersetSecretKey
+  description: Secret Key for Superset
+  type: string
+  label: Superset Secret Key
+  group: Superset Settings
