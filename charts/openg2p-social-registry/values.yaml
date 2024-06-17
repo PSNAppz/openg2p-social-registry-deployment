@@ -4,6 +4,8 @@ global:
   opensearchHostname: opensearch.openg2p.sandbox.net
   minioHostname: minio.openg2p.sandbox.net
   supersetHostname: superset.openg2p.sandbox.net
+  keymanagerHostname: keymanager.openg2p.sandbox.net
+  esignetHostname: esignet.openg2p.sandbox.net
   mailname: openg2p.sandbox.net
   sysAdminEmail: admin@openg2p.sandbox.net
 
@@ -94,13 +96,44 @@ odoo:
 
 esignet:
   enabled: false
+  captchaEnabled: true
+  envVars:
+    esignet_captcha_site_key: ''
+    esignet_captcha_secret_key: ''
+  mock-identity-system:
+    enabled: true
+    springConfig:
+      names: application,mock-identity-system
+      profile: default
+      gitRepo:
+        enabled: true
+        repoUrl: https://github.com/openg2p/mosip-config
+        branch: master
+      rawConfig: ""
+  springConfig:
+    names: application,esignet
+    profile: default
+    gitRepo:
+      enabled: true
+      repoUrl: https://github.com/openg2p/mosip-config
+      branch: master
+    rawConfig: ""
 
 keymanager:
   enabled: true
+  springConfig:
+    names: application,kernel
+    profile: default
+    gitRepo:
+      enabled: true
+      repoUrl: https://github.com/openg2p/mosip-config
+      branch: master
+    rawConfig: ""
+  envVars:
+    auth_server_admin_allowed_audience: 'openg2p-sr,openg2p-sr-{{ .Release.Namespace }},openg2p-pbms,openg2p-pbms-{{ .Release.Namespace }},openg2p-spar-{{ .Release.Namespace }}'
 
 mail:
   enabled: true
-
 
 odk-central:
   enabled: false

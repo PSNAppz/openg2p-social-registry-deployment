@@ -44,7 +44,7 @@ questions:
   description: |-
     Edit this only if you want to reuse existing Mail Server Installation.
     Else enable Mail Server Installation from "General Settings".
-  type: string
+  type: reference_service
   label: Existing Mail Server Installation Name
   group: Mail Settings
   show_if: "mail.enabled!=true"
@@ -97,7 +97,7 @@ questions:
   description: |-
     Edit this only if you want to reuse existing OpenSearch Installation.
     Else enable OpenSearch Installation from "General Settings".
-  type: boolean
+  type: reference_service
   label: Existing OpenSearch Installation Name
   group: OpenSearch Settings
   show_if: "opensearch.enabled!=true"
@@ -162,7 +162,7 @@ questions:
   description: |-
     Edit this only if you want to reuse existing Keymanager Installation.
     Else enable Keymanager Installation from "General Settings".
-  type: boolean
+  type: reference_service
   label: Existing Keymanager Installation Name
   group: Keymanager Settings
   show_if: "keymanager.enabled!=true"
@@ -211,7 +211,7 @@ questions:
   description: |-
     If git-based config is disabled, the complete application.properties can be
     directly supplied here.
-  type: multiline
+  type: yamlfile
   label: Spring Config application properties.
   group: Keymanager Settings
   show_if: "keymanager.springConfig.gitRepo.enabled!=true"
@@ -296,7 +296,7 @@ questions:
   description: |-
     If git-based config is disabled, the complete application.properties can be
     directly supplied here.
-  type: multiline
+  type: yamlfile
   label: Spring Config application properties.
   group: eSignet Settings
   show_if: "esignet.springConfig.gitRepo.enabled!=true"
@@ -339,7 +339,7 @@ questions:
   description: |-
     If git-based config is disabled, the complete application.properties can be
     directly supplied here.
-  type: multiline
+  type: yamlfile
   label: Spring Config application properties.
   group: Mock Identity System Settings
   show_if: "esignet.mock-identity-system.springConfig.gitRepo.enabled!=true"

@@ -2,7 +2,7 @@ apiVersion: v2
 name: openg2p-social-registry
 description: A Helm chart for OpenG2P Social Registry
 type: application
-version: 0.0.0-develop
+version: 0.0.1
 dependencies:
 - name: odoo
   version: 21.6.5
@@ -32,7 +32,12 @@ dependencies:
   version: 15.x.x
   repository: oci://registry-1.docker.io/bitnamicharts
   alias: supersetPostgresql
-  condition: supersetPostgresql.enabled
+  condition: superset.enabled
+- name: redis
+  version: 19.x.x
+  repository: oci://registry-1.docker.io/bitnamicharts
+  alias: supersetRedis
+  condition: superset.enabled
 - name: esignet
   version: 1.4.0
   repository: https://openg2p.github.io/openg2p-helm
