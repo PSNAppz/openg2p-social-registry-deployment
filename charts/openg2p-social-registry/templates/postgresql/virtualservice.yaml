@@ -1,6 +1,7 @@
-{{- if .Values.postgresIngress.enabled }}
-{{- if eq .Values.postgresIngress.type "istio" }}
-{{- if .Values.postgresIngress.istio.virtualservice.enabled }}
+{{- if .Values.odoo.enabled }}
+{{- if .Values.odoo.postgresql.enabled }}
+{{- if .Values.odoo.postgresql.istio.enabled }}
+{{- if .Values.odoo.postgresql.istio.virtualservice.enabled }}
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
@@ -9,17 +10,18 @@ metadata:
     {{- include "openg2p.labels" . | nindent 4 }}
 spec:
   hosts:
-  - {{ default .Values.global.socialRegistryHostname .Values.postgresIngress.istio.virtualservice.host | quote }}
+  - {{ default .Values.global.socialRegistryHostname .Values.odoo.postgresql.istio.virtualservice.host | quote }}
   gateways:
-  - {{ default (printf "%s-postgresql" .Release.Name) .Values.postgresIngress.istio.virtualservice.gateway }}
+  - {{ default (printf "%s-postgresql" .Release.Name) .Values.odoo.postgresql.istio.virtualservice.gateway }}
   tcp:
   - match:
-    - port: {{ .Values.postgresIngress.istio.virtualservice.matchPort }}
+    - port: {{ .Values.odoo.postgresql.istio.virtualservice.matchPort }}
     route:
     - destination:
-        host: {{ tpl .Values.postgresIngress.istio.virtualservice.destination $ }}
+        host: {{ tpl .Values.odoo.postgresql.istio.virtualservice.destination $ }}
         port:
-          number: {{ tpl .Values.postgresIngress.istio.virtualservice.destinationPort $ }}
+          number: {{ tpl .Values.odoo.postgresql.istio.virtualservice.destinationPort $ }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

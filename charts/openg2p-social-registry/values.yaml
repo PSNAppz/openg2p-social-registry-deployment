@@ -6,7 +6,19 @@ global:
   supersetHostname: superset.openg2p.sandbox.net
   mailname: openg2p.sandbox.net
   sysAdminEmail: admin@openg2p.sandbox.net
-  keycloakIssuerUrl: https://keycloak.openg2p.sandbox.net/realms/master
+
+  socialRegistryAuthClientId: 'openg2p-sr'
+  socialRegistryAuthClientSecret: ''
+
+  socialRegistryMailInstallationName: '{{ .Release.Name }}-mail'
+  socialRegistryOpensearchInstallationName: '{{ .Release.Name }}-opensearch'
+
+  keycloakBaseUrl: https://keycloak.openg2p.sandbox.net
+  keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/master'
+
+  socialRegistryKeymanagerInstallationName: '{{ .Release.Name }}-keymanager'
+  socialRegistryKeymanagerAuthClientId: '{{ tpl .Values.global.socialRegistryAuthClientId $ }}'
+  socialRegistryKeymanagerAuthClientSecret: '{{ tpl .Values.global.socialRegistryAuthClientSecret $ }}'
 
 odoo:
   enabled: true
@@ -29,6 +41,25 @@ odoo:
         wal_level = logical
         max_wal_senders = 20
         max_replication_slots = 10
+    istio:
+      enabled: false
+      virtualservice:
+        enabled: true
+        host: "*"
+        gateway: ""
+        matchPort: 5432
+        destination: '{{ .Release.Name }}-postgresql'
+        destinationPort: "5432"
+      gateway:
+        enabled: true
+        port: 5432
+        host: "*"
+        ingressController:
+          istio: ingressgateway
+        tls:
+          enabled: false
+          mode: SIMPLE
+          credentialName: ""
 
   livenessProbe:
     enabled: false
@@ -45,25 +76,39 @@ odoo:
     value: web,queue_job
   # not using bitnami smtpHost and smtpPort variables, because they need user and pass as well.
   - name: OPENG2P_SMTP_HOST
-    value: '{{ .Release.Name }}-mail'
+    value: '{{ tpl .Values.global.socialRegistryMailInstallationName $ }}'
   - name: OPENG2P_SMTP_PORT_NUMBER
     value: "25"
   - name: LOG_HANDLER
     value: "[':INFO']"
   - name: LOG_DB
     value: "False"
+  - name: KEYMANAGER_API_BASE_URL
+    value: '{{ tpl .Values.global.socialRegistryKeymanagerInstallationName $ }}'
+  - name: KEYMANAGER_AUTH_URL
+    value: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/token'
+  - name: KEYMANAGER_AUTH_CLIENT_ID
+    value: '{{ tpl .Values.global.socialRegistryKeymanagerAuthClientId $ }}'
+  - name: KEYMANAGER_AUTH_CLIENT_SECRET
+    value: '{{ tpl .Values.global.socialRegistryKeymanagerAuthClientSecret $ }}'
+
+esignet:
+  enabled: false
+
+keymanager:
+  enabled: true
 
 mail:
   enabled: true
 
 odk-central:
-  enabled: true
+  enabled: false
   odk-central-mail:
     enabled: false
   odk-central-backend:
     envVars:
-      EMAIL_HOST: '{{ .Release.Name }}-mail'
-      OIDC_ISSUER_URL: '{{ .Values.global.keycloakIssuerUrl }}'
+      EMAIL_HOST: '{{ tpl .Values.global.socialRegistryMailInstallationName $ }}'
+      OIDC_ISSUER_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
       OIDC_CLIENT_ID: ""
       OIDC_CLIENT_SECRET: ""
 
@@ -73,7 +118,7 @@ minio:
     enabled: true
     size: 16Gi
 
-  oidcWellKnownConfigUrl: '{{ .Values.global.keycloakIssuerUrl }}/.well-known/openid-configuration'
+  oidcWellKnownConfigUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/.well-known/openid-configuration'
   oidcClientId: openg2p-sr-minio
   oidcClientSecret: ''
 
@@ -118,7 +163,7 @@ minio:
 opensearch:
   enabled: false
 
-  oidcWellKnownConfigUrl: '{{ .Values.global.keycloakIssuerUrl }}/.well-known/openid-configuration'
+  oidcWellKnownConfigUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/.well-known/openid-configuration'
   oidcClientId: openg2p-sr-opensearch
   oidcClientSecret: ''
 
@@ -266,7 +311,7 @@ opensearch:
     passwordFrom:
       secretKeyRef:
         key: logstash-password
-        name: '{{ include "socialRegistry.fullname" . }}'
+        name: '{{ .Release.Name }}-opensearch'
     extraConfig:
       ssl_verify: false
       logstash_format: true
@@ -294,17 +339,49 @@ opensearch:
         mode: SIMPLE
         credentialName: ""
 
+# TODO: Doing this since postgres and redis charts inside superset are old.
+supersetPostgresql:
+  nameOverride: superset-postgresql
+  auth:
+    username: superset
+    password: superset
+    database: superset
+  primary:
+    extendedConfiguration: |-
+      wal_level = logical
+      max_wal_senders = 20
+      max_replication_slots = 10
+supersetRedis:
+  nameOverride: superset-redis
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+
 superset:
   enabled: false
 
-  oidcIssuerUrl: '{{ .Values.global.keycloakIssuerUrl }}'
-  oidcClientId: openg2p-sr-opensearch
+  oidcIssuerUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
+  oidcClientId: openg2p-sr-superset
   oidcClientSecret: ''
 
   supersetSecretKey: ''
 
   init:
     createAdmin: false
+
+  postgresql:
+    enabled: false
+
+  redis:
+    enabled: false
+
+  supersetNode:
+    connections:
+      redis_host: '{{ .Release.Name }}-superset-redis-headless'
+      db_host: '{{ .Release.Name }}-superset-postgresql'
 
   bootstrapScript: |
     #!/bin/bash
@@ -393,7 +470,7 @@ superset:
 
 loggingFlow:
   enabled: false
-  outputRef: '{{ .Release.Name }}-opensearch'
+  outputRef: '{{ tpl .Values.global.socialRegistryOpensearchInstallationName $ }}'
   extraLocalOutputRefs: []
   globalOutputRefs: []
   parser:
@@ -414,6 +491,8 @@ istio:
     gateway: "internal"
     destination: '{{ .Release.Name }}-odoo'
     destinationPort: '{{ .Values.odoo.service.port }}'
+    prefix: /
+    rewriteUri: ""
   gateway:
     enabled: false
     host: ""
@@ -425,27 +504,3 @@ istio:
     tls:
       mode: SIMPLE
       credentialName: ""
-
-postgresIngress:
-  enabled: false
-  type: istio
-  # TODO: Implement type: ingress
-  istio:
-    enabled: false
-    virtualservice:
-      enabled: true
-      host: "*"
-      gateway: ""
-      matchPort: 5432
-      destination: '{{ .Release.Name }}-postgresql'
-      destinationPort: "5432"
-    gateway:
-      enabled: true
-      port: 5432
-      host: "*"
-      ingressController:
-        istio: ingressgateway
-      tls:
-        enabled: false
-        mode: SIMPLE
-        credentialName: ""

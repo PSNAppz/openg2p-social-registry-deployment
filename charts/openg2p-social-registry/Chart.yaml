@@ -28,7 +28,20 @@ dependencies:
   version: 0.12.11
   repository: https://apache.github.io/superset
   condition: superset.enabled
-# TODO: Add Keymanager and other dependencies.
+- name: postgresql
+  version: 15.x.x
+  repository: oci://registry-1.docker.io/bitnamicharts
+  alias: supersetPostgresql
+  condition: supersetPostgresql.enabled
+- name: esignet
+  version: 1.4.0
+  repository: https://openg2p.github.io/openg2p-helm
+  condition: esignet.enabled
+- name: keymanager
+  version: 12.0.1-B3
+  repository: https://openg2p.github.io/openg2p-helm
+  condition: keymanager.enabled
+# TODO: Add Reporting dependencies.
 icon: https://openg2p.github.io/openg2p-helm/openg2p-logo.png
 annotations:
   catalog.cattle.io/display-name: "OpenG2P Social Registry"

@@ -1,2 +1,2 @@
-charts/mail*.tgz
-charts/odk-central*.tgz
+charts/
+Chart.lock
