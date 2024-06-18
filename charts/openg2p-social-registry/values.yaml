@@ -96,7 +96,7 @@ odoo:
 
 esignet:
   enabled: false
-  captchaEnabled: true
+  captchaEnabled: false
   envVars:
     esignet_captcha_site_key: ''
     esignet_captcha_secret_key: ''
