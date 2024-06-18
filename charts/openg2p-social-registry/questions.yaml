@@ -10,32 +10,43 @@ questions:
   label: Keycloak Base URL
 
 - variable: mail.enabled
-  description: Enabling this installs Mail server for relaying SMTP requests to preferred backend.
+  description: This installs Mail server for relaying SMTP requests to preferred backend.
   type: boolean
   label: Install Mail SMTP Server?
 
 - variable: odk-central.enabled
-  description: Enabling this installs ODK Central.
+  description: This installs ODK Central.
   type: boolean
   label: Install ODK Central?
 
 - variable: minio.enabled
-  description: Enabling this installs Minio for document store.
+  description: This installs Minio for document store.
   type: boolean
   label: Install Minio?
 
 - variable: opensearch.enabled
-  description: Enabling this installs OpenSearch
+  description: This installs OpenSearch for logging and reporting
   type: boolean
   label: Install OpenSearch?
 
 - variable: superset.enabled
-  description: Enabling this installs Superset for reporting
+  description: This installs Superset for reporting
   type: boolean
   label: Install Superset?
 
+- variable: esignet.enabled
+  description: This installs eSignet for mocking user authentication
+  type: boolean
+  label: Install eSignet?
+
+- variable: esignet.mock-identity-system.enabled
+  description: This installs Mock Identity System with eSignet
+  type: boolean
+  label: Install Mock Identity System?
+  show_if: "esignet.enabled=true"
+
 - variable: loggingFlow.enabled
-  description: Enabling this will allow Fluentd to capture logs into OpenSearch.
+  description: This will allow Fluentd to capture logs into OpenSearch.
   type: boolean
   label: Fluentd Logs Flow?
 
@@ -43,11 +54,11 @@ questions:
 - variable: global.socialRegistryMailInstallationName
   description: |-
     Edit this only if you want to reuse existing Mail Server Installation.
-    Else enable Mail Server Installation from "General Settings".
+    Else enable Mail Server Installation from "Questions".
   type: reference_service
   label: Existing Mail Server Installation Name
   group: Mail Settings
-  show_if: "mail.enabled!=true"
+  show_if: "mail.enabled=false"
 
 # ODK Central Settings
 - variable: global.odkHostname
@@ -96,11 +107,11 @@ questions:
 - variable: global.socialRegistryOpensearchInstallationName
   description: |-
     Edit this only if you want to reuse existing OpenSearch Installation.
-    Else enable OpenSearch Installation from "General Settings".
+    Else enable OpenSearch Installation from "Questions".
   type: reference_service
   label: Existing OpenSearch Installation Name
   group: OpenSearch Settings
-  show_if: "opensearch.enabled!=true"
+  show_if: "opensearch.enabled=false"
 
 - variable: global.opensearchHostname
   description: Hostname for OpenSearch Dashboards
@@ -123,7 +134,7 @@ questions:
   show_if: "opensearch.enabled=true"
 
 - variable: opensearch.loggingOutput.enabled
-  description: Enabling this will allow Fluentd to send logs into this OpenSearch.
+  description: This will allow Fluentd to send logs into this OpenSearch.
   type: boolean
   label: Fluentd Logs Output?
   group: OpenSearch Settings
@@ -165,7 +176,7 @@ questions:
   type: reference_service
   label: Existing Keymanager Installation Name
   group: Keymanager Settings
-  show_if: "keymanager.enabled!=true"
+  show_if: "keymanager.enabled=false"
 
 - variable: global.keymanagerHostname
   description: Hostname under which Keymanager should be accessible
@@ -211,10 +222,10 @@ questions:
   description: |-
     If git-based config is disabled, the complete application.properties can be
     directly supplied here.
-  type: yamlfile
+  type: multiline
   label: Spring Config application properties.
   group: Keymanager Settings
-  show_if: "keymanager.springConfig.gitRepo.enabled!=true"
+  show_if: "keymanager.enabled=true&&keymanager.springConfig.gitRepo.enabled=false"
 
 - variable: keymanager.envVars.auth_server_admin_allowed_audience
   description: |-
@@ -225,18 +236,12 @@ questions:
   group: Keymanager Advanced Settings
   show_if: "keymanager.enabled=true"
 
+# eSignet
 - variable: global.esignetHostname
   description: Hostname under which eSignet should be accessible
   type: string
   label: eSignet Hostname
   group: eSignet Settings
-
-- variable: esignet.mock-identity-system.enabled
-  description: This installs Mock Identity System along with the current eSignet
-  type: boolean
-  label: Install Mock Identity System?
-  group: eSignet Settings
-  show_if: "esignet.enabled=true"
 
 - variable: esignet.springConfig.profile
   type: string
@@ -273,7 +278,7 @@ questions:
     group: eSignet Settings
 
 - variable: esignet.captchaEnabled
-  description: Enabling this enables captcha verification wherever applied.
+  description: This enables captcha verification wherever applied.
   type: boolean
   label: Enabled captcha verification?
   group: eSignet Settings
@@ -296,31 +301,32 @@ questions:
   description: |-
     If git-based config is disabled, the complete application.properties can be
     directly supplied here.
-  type: yamlfile
+  type: multiline
   label: Spring Config application properties.
   group: eSignet Settings
-  show_if: "esignet.springConfig.gitRepo.enabled!=true"
+  show_if: "esignet.enabled=true&&esignet.springConfig.gitRepo.enabled=false"
 
 # Mock Identity Settings
 - variable: esignet.mock-identity-system.springConfig.profile
   type: string
   label: Spring Config Profile
   group: Mock Identity System Settings
-  show_if: "esignet.mock-identity-system.enabled=true"
+  show_if: "esignet.enabled=true&&esignet.mock-identity-system.enabled=true"
 
 - variable: esignet.mock-identity-system.springConfig.names
   type: string
   label: Spring Config Names
   group: Mock Identity System Settings
-  show_if: "esignet.mock-identity-system.enabled=true"
+  show_if: "esignet.enabled=true&&esignet.mock-identity-system.enabled=true"
 
 - variable: esignet.mock-identity-system.springConfig.gitRepo.enabled
   description: Enables download of configs from Git repo.
   type: boolean
   label: Spring Config Git Enabled
   group: Mock Identity System Settings
-  show_if: "esignet.mock-identity-system.enabled=true"
+  show_if: "esignet.enabled=true&&esignet.mock-identity-system.enabled=true"
   show_subquestions_if: true
+  subquestions:
   - variable: esignet.mock-identity-system.springConfig.gitRepo.repoUrl
     description: |-
       Repo Url for remote Git repo containing configs.
@@ -342,4 +348,4 @@ questions:
   type: yamlfile
   label: Spring Config application properties.
   group: Mock Identity System Settings
-  show_if: "esignet.mock-identity-system.springConfig.gitRepo.enabled!=true"
+  show_if: "esignet.enabled=true&&esignet.mock-identity-system.enabled=true&&esignet.mock-identity-system.springConfig.gitRepo.enabled=false"
