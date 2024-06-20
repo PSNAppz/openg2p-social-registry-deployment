@@ -54,7 +54,7 @@ odoo:
         host: "*"
         gateway: ""
         matchPort: 5432
-        destination: '{{ .Release.Name }}-postgresql'
+        destination: '{{ include "postgresql.v1.primary.fullname" .Subcharts.odoo.Subcharts.postgresql }}'
         destinationPort: "5432"
       gateway:
         enabled: true
@@ -83,7 +83,7 @@ odoo:
   # not using bitnami smtpHost and smtpPort variables, because they need user and pass as well.
   - name: OPENG2P_SMTP_HOST
     value: '{{ tpl .Values.global.socialRegistryMailInstallationName $ }}'
-  - name: OPENG2P_SMTP_PORT_NUMBER
+  - name: OPENG2P_SMTP_PORT
     value: "25"
   - name: LOG_HANDLER
     value: "[':INFO']"
@@ -159,7 +159,7 @@ minio:
       enabled: true
       host: ""
       gateway: "internal"
-      destination: '{{ .Release.Name }}-minio'
+      destination: '{{ include "common.names.fullname" .Subcharts.minio }}'
       destinationPort: "9001"
     gateway:
       enabled: false
@@ -318,7 +318,7 @@ opensearch:
     enabled: false
     type: opensearch
     scheme: https
-    host: '{{ printf "%s-opensearch.%s" (.Release.Name) (.Release.Namespace) }}'
+    host: '{{ include "common.names.fullname" .Subcharts.opensearch }}.{{ .Release.Namespace }}'
     port: "9200"
     user: logstash
     passwordFrom:
@@ -394,7 +394,7 @@ istio:
     enabled: true
     host: ""
     gateway: "internal"
-    destination: '{{ .Release.Name }}-odoo'
+    destination: '{{ include "common.names.fullname" .Subcharts.odoo }}'
     destinationPort: '{{ .Values.odoo.service.port }}'
     prefix: /
     rewriteUri: ""

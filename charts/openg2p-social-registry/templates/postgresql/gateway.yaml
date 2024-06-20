@@ -5,9 +5,9 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
-  name: {{ .Release.Name }}-postgresql
+  name: {{ include "postgresql.v1.primary.fullname" .Subcharts.odoo.Subcharts.postgresql }}
   labels:
-    {{- include "openg2p.labels" . | nindent 4 }}
+    {{- include "socialRegistry.labels" . | nindent 4 }}
 spec:
   selector:
     {{ toYaml .Values.odoo.postgresql.istio.gateway.ingressController | nindent 4 }}

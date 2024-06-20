@@ -3,7 +3,7 @@
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Flow
 metadata:
-  name: {{ include "socialRegistry.fullname" . }}-odoo
+  name: {{ include "common.names.fullname" .Subcharts.odoo }}
 spec:
   filters:
   - parser:
