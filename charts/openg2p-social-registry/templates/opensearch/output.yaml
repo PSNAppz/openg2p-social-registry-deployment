@@ -3,7 +3,7 @@
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Output
 metadata:
-  name: {{ .Release.Name }}-opensearch
+  name: {{ include "common.names.fullname" .Subcharts.opensearch }}
 spec:
   {{ .Values.opensearch.loggingOutput.type }}:
     scheme: {{ include "common.tplvalues.render" (dict "value" .Values.opensearch.loggingOutput.scheme "context" $) }}

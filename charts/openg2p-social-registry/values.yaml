@@ -3,11 +3,11 @@ global:
   odkHostname: odk.openg2p.sandbox.net
   opensearchHostname: opensearch.openg2p.sandbox.net
   minioHostname: minio.openg2p.sandbox.net
-  supersetHostname: superset.openg2p.sandbox.net
   keymanagerHostname: keymanager.openg2p.sandbox.net
   esignetHostname: esignet.openg2p.sandbox.net
   mailname: openg2p.sandbox.net
   sysAdminEmail: admin@openg2p.sandbox.net
+  reportingKafkaHostname: kafka.openg2p.sandbox.net
 
   socialRegistryAuthClientId: 'openg2p-sr'
   socialRegistryAuthClientSecret: ''
@@ -21,6 +21,10 @@ global:
   socialRegistryKeymanagerInstallationName: '{{ .Release.Name }}-keymanager'
   socialRegistryKeymanagerAuthClientId: '{{ tpl .Values.global.socialRegistryAuthClientId $ }}'
   socialRegistryKeymanagerAuthClientSecret: '{{ tpl .Values.global.socialRegistryAuthClientSecret $ }}'
+
+  reportingInstallationName: '{{ .Release.Name }}-reporting'
+  reportingPostgresqlInstallationName: '{{ .Release.Name }}-postgresql'
+  reportingOpensearchInstallationName: '{{ tpl .Values.global.socialRegistryOpensearchInstallationName $ }}'
 
 odoo:
   enabled: true
@@ -94,31 +98,6 @@ odoo:
   - name: KEYMANAGER_AUTH_CLIENT_SECRET
     value: '{{ tpl .Values.global.socialRegistryKeymanagerAuthClientSecret $ }}'
 
-esignet:
-  enabled: false
-  captchaEnabled: false
-  envVars:
-    esignet_captcha_site_key: ''
-    esignet_captcha_secret_key: ''
-  mock-identity-system:
-    enabled: true
-    springConfig:
-      names: application,mock-identity-system
-      profile: default
-      gitRepo:
-        enabled: true
-        repoUrl: https://github.com/openg2p/mosip-config
-        branch: master
-      rawConfig: ""
-  springConfig:
-    names: application,esignet
-    profile: default
-    gitRepo:
-      enabled: true
-      repoUrl: https://github.com/openg2p/mosip-config
-      branch: master
-    rawConfig: ""
-
 keymanager:
   enabled: true
   springConfig:
@@ -143,7 +122,7 @@ odk-central:
     envVars:
       EMAIL_HOST: '{{ tpl .Values.global.socialRegistryMailInstallationName $ }}'
       OIDC_ISSUER_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
-      OIDC_CLIENT_ID: ""
+      OIDC_CLIENT_ID: openg2p-sr-odk
       OIDC_CLIENT_SECRET: ""
 
 minio:
@@ -222,7 +201,7 @@ opensearch:
   extraVolumes:
   - name: security-config
     configMap:
-      name: '{{ .Release.Name }}-opensearch-custom-config'
+      name: '{{ include "common.names.fullname" . }}-custom-config'
 
   extraVolumeMounts:
   - name: security-config
@@ -293,7 +272,7 @@ opensearch:
     extraVolumes:
     - name: dashboards-config
       configMap:
-        name: '{{ .Release.Name }}-opensearch-custom-config'
+        name: '{{ include "common.names.fullname" . }}-custom-config'
 
     extraVolumeMounts:
     - name: dashboards-config
@@ -345,7 +324,7 @@ opensearch:
     passwordFrom:
       secretKeyRef:
         key: logstash-password
-        name: '{{ .Release.Name }}-opensearch'
+        name: '{{ include "common.names.fullname" .Subcharts.opensearch }}'
     extraConfig:
       ssl_verify: false
       logstash_format: true
@@ -359,7 +338,7 @@ opensearch:
       enabled: true
       host: ""
       gateway: "internal"
-      destination: '{{ .Release.Name }}-opensearch-dashboards'
+      destination: '{{ include "common.names.fullname" .Subcharts.opensearch }}-dashboards'
       destinationPort: "5601"
     gateway:
       enabled: false
@@ -373,134 +352,26 @@ opensearch:
         mode: SIMPLE
         credentialName: ""
 
-# TODO: Doing this since postgres and redis charts inside superset are old.
-supersetPostgresql:
-  nameOverride: superset-postgresql
-  auth:
-    username: superset
-    password: superset
-    database: superset
-  primary:
-    extendedConfiguration: |-
-      wal_level = logical
-      max_wal_senders = 20
-      max_replication_slots = 10
-supersetRedis:
-  nameOverride: superset-redis
-  architecture: standalone
-  auth:
-    enabled: false
-  master:
-    persistence:
-      enabled: false
-
-superset:
+reporting:
   enabled: false
-
-  oidcIssuerUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
-  oidcClientId: openg2p-sr-superset
-  oidcClientSecret: ''
-
-  supersetSecretKey: ''
-
-  init:
-    createAdmin: false
-
-  postgresql:
-    enabled: false
-
-  redis:
-    enabled: false
-
-  supersetNode:
-    connections:
-      redis_host: '{{ .Release.Name }}-superset-redis-headless'
-      db_host: '{{ .Release.Name }}-superset-postgresql'
-
-  bootstrapScript: |
-    #!/bin/bash
-    pip install authlib==1.3.0
-
-  configOverrides:
-    enable_oauth: |
-      SECRET_KEY = '{{ tpl .Values.supersetSecretKey $ }}' or 'OPENG2P_SUPER_SECRET_KEY'
-
-      # This will make sure the redirect_uri is properly computed, even with SSL offloading
-      ENABLE_PROXY_FIX = True
-
-      from flask_appbuilder.security.manager import AUTH_OAUTH
-      AUTH_TYPE = AUTH_OAUTH
-      OAUTH_PROVIDERS = [
-        {
-          "name": "keycloak",
-          "icon": "fa-key",
-          "token_key": "access_token",
-          "remote_app": {
-            "client_id": "{{ tpl .Values.oidcClientId $ }}",
-            "client_secret": "{{ tpl .Values.oidcClientSecret $ }}",
-            "api_base_url": "{{ tpl .Values.oidcIssuerUrl $ }}/protocol/openid-connect",
-            "client_kwargs": {"scope": "email profile openid"},
-            "access_token_url": "{{ tpl .Values.oidcIssuerUrl $ }}/protocol/openid-connect/token",
-            "jwks_uri": "{{ tpl .Values.oidcIssuerUrl $ }}/protocol/openid-connect/certs",
-            "authorize_url": "{{ tpl .Values.oidcIssuerUrl $ }}/protocol/openid-connect/auth",
-            "request_token_url": None
-          },
-        }
-      ]
-
-      # Map Authlib roles to superset roles
-      AUTH_ROLES_MAPPING = {
-        "Public": ["Public"],
-        "Admin": ["Admin"],
-      }
-
-      AUTH_ROLES_SYNC_AT_LOGIN = True
-
-      # Will allow user self registration, allowing to create Flask users from Authorized User
-      AUTH_USER_REGISTRATION = True
-
-      # The default user self registration role
-      # AUTH_USER_REGISTRATION_ROLE = "Public"
-
-      from superset.security import SupersetSecurityManager
-      class CustomSsoSecurityManager(SupersetSecurityManager):
-        def oauth_user_info(self, provider, response=None):
-          if provider == "keycloak":
-            me = self.appbuilder.sm.oauth_remotes[provider].get(
-              "openid-connect/userinfo"
-            )
-            me.raise_for_status()
-            data = me.json()
-            return {
-              "username": data.get("preferred_username", ""),
-              "first_name": data.get("given_name", ""),
-              "last_name": data.get("family_name", ""),
-              "email": data.get("email", ""),
-              "role_keys": data.get("client_roles", []),
-            }
-          return {}
-
-      CUSTOM_SECURITY_MANAGER = CustomSsoSecurityManager
-
-  istio:
+  kafka:
     enabled: true
-    virtualservice:
-      enabled: true
-      host: ""
-      gateway: "internal"
-      destination: '{{ .Release.Name }}-superset'
-      destinationPort: "8088"
-    gateway:
-      enabled: false
-      host: ""
-      ingressController:
-        istio: ingressgateway
-      httpTlsRedirect: true
-      httpEnabled: true
-      httpsEnabled: false
-      tls:
-        mode: SIMPLE
-        credentialName: ""
+  kafkaUi:
+    enabled: true
+    oidcClientId: 'openg2p-sr-reporting-kafka'
+    oidcClientSecret: ''
+  opensearch:
+    enabled: false
+
+reporting-init:
+  enabled: false
+  gitConfig:
+    enabled: true
+    repoUrl: https://github.com/openg2p/openg2p-reporting
+    branch: develop
+    subDir: "scripts/social-registry"
+  envVars:
+    DB_NAME: 'bitnami_odoo'
 
 loggingFlow:
   enabled: false

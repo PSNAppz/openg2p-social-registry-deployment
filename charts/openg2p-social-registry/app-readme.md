@@ -1,1 +1,1 @@
-This is a install guide for installing OpenG2P Social Registry on Rancher.
+- Refer to deployment guide [here](https://docs.openg2p.org/social-registry/deployment).
