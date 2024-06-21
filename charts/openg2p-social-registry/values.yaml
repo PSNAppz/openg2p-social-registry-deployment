@@ -42,6 +42,9 @@ odoo:
 
   postgresql:
     enabled: true
+    auth:
+      username: sruser
+      database: socialregistrydb
     primary:
       extendedConfiguration: |-
         wal_level = logical
@@ -371,7 +374,7 @@ reporting-init:
     branch: develop
     subDir: "scripts/social-registry"
   envVars:
-    DB_NAME: 'bitnami_odoo'
+    DB_NAME: socialregistrydb
 
 loggingFlow:
   enabled: false
