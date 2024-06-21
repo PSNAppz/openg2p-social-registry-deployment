@@ -4,7 +4,7 @@
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
-  name: {{ .Release.Name }}-opensearch
+  name: {{ include "common.names.fullname" .Subcharts.opensearch }}
   labels:
     {{- include "socialRegistry.labels" . | nindent 4 }}
 spec:

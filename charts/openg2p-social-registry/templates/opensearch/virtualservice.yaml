@@ -4,7 +4,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: {{ .Release.Name }}-opensearch
+  name: {{ include "common.names.fullname" .Subcharts.opensearch }}
   labels:
     {{- include "socialRegistry.labels" . | nindent 4 }}
 spec:
