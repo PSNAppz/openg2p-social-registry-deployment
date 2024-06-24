@@ -9,14 +9,14 @@ metadata:
     {{- include "socialRegistry.labels" . | nindent 4 }}
 spec:
   hosts:
-  - {{ default .Values.global.minioHostname .Values.minio.istio.virtualservice.host | quote }}
+  - {{ default .Values.minio.hostname .Values.minio.istio.virtualservice.host | quote }}
   gateways:
   - {{ default (include "socialRegistry.fullname" .) .Values.minio.istio.virtualservice.gateway }}
   http:
   - headers:
       request:
         set:
-          x-forwarded-host: {{ default .Values.global.minioHostname .Values.minio.istio.virtualservice.host | quote }}
+          x-forwarded-host: {{ default .Values.minio.hostname .Values.minio.istio.virtualservice.host | quote }}
           x-forwarded-proto: https
     route:
     - destination:
