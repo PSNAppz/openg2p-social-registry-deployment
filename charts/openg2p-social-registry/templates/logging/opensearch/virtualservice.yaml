@@ -11,7 +11,7 @@ spec:
   hosts:
   - {{ default .Values.loggingOpensearch.hostname .Values.loggingOpensearch.istio.virtualservice.host | quote }}
   gateways:
-  - {{ default (include "socialRegistry.fullname" .) .Values.loggingOpensearch.istio.virtualservice.gateway }}
+  - {{ default (include "common.names.fullname" .Subcharts.loggingOpensearch) .Values.loggingOpensearch.istio.virtualservice.gateway }}
   http:
   - headers:
       request:
