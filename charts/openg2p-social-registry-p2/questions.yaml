@@ -10,6 +10,7 @@ questions:
   description: This installs Superset for reporting
   type: boolean
   label: Install Superset?
+  group: Superset Settings
 
 - variable: superset.hostname
   description: Hostname for Superset Dashboards
@@ -44,6 +45,7 @@ questions:
   description: This installs eSignet for mocking user authentication
   type: boolean
   label: Install eSignet?
+  group: eSignet Settings
 
 - variable: esignet.hostname
   description: Hostname under which eSignet should be accessible
