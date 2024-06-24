@@ -1,8 +1,4 @@
 global:
-  supersetHostname: superset-sr.openg2p.sandbox.net
-
-  esignetHostname: esignet-sr.openg2p.sandbox.net
-
   keycloakBaseUrl: https://keycloak.openg2p.sandbox.net
   keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/master'
 
@@ -10,6 +6,7 @@ nameOverride: openg2p-social-registry
 
 superset:
   enabled: true
+  hostname: superset-sr.openg2p.sandbox.net
 
   oidcIssuerUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
   oidcClientId: openg2p-sr-superset
@@ -139,6 +136,8 @@ supersetRedis:
 
 esignet:
   enabled: false
+  hostname: esignet-sr.openg2p.sandbox.net
+
   captchaEnabled: false
   envVars:
     esignet_captcha_site_key: ''
