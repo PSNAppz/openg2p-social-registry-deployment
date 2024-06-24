@@ -113,6 +113,7 @@ mail:
 odk-central:
   enabled: true
   odk-central-mail:
+    enabled: true
     # envVars:
   odk-central-backend:
     envVars:
