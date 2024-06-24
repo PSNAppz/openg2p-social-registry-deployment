@@ -112,6 +112,7 @@ mail:
 odk-central:
   enabled: true
   hostname: odk-sr.openg2p.sandbox.net
+
   odk-central-mail:
     enabled: true
     # envVars:
