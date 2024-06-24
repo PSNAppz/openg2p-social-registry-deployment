@@ -1,11 +1,9 @@
 global:
-  sysAdminEmail: admin@openg2p.sandbox.net
-
-  # General Settings
   keycloakBaseUrl: https://keycloak.openg2p.sandbox.net
   keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/master'
 
   odkHostname: odk-sr.openg2p.sandbox.net
+  sysAdminEmail: admin@openg2p.sandbox.net
 
 hostname: socialregistry.openg2p.sandbox.net
 
