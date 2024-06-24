@@ -11,7 +11,7 @@ spec:
   hosts:
   - {{ default .Values.minio.hostname .Values.minio.istio.virtualservice.host | quote }}
   gateways:
-  - {{ default (include "socialRegistry.fullname" .) .Values.minio.istio.virtualservice.gateway }}
+  - {{ default (include "common.names.fullname" .Subcharts.minio) .Values.minio.istio.virtualservice.gateway }}
   http:
   - headers:
       request:

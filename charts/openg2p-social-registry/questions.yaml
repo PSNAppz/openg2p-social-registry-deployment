@@ -37,7 +37,7 @@ questions:
   label: Install ODK Central?
   group: ODK Central Settings
 
-- variable: odk.hostname
+- variable: odk-central.hostname
   description: Hostname for ODK Central
   type: string
   label: ODK Central Hostname
