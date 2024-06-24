@@ -2,7 +2,6 @@ global:
   keycloakBaseUrl: https://keycloak.openg2p.sandbox.net
   keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/master'
 
-  odkHostname: odk-sr.openg2p.sandbox.net
   sysAdminEmail: admin@openg2p.sandbox.net
 
 hostname: socialregistry.openg2p.sandbox.net
@@ -112,10 +111,11 @@ mail:
 
 odk-central:
   enabled: true
+  hostname: odk-sr.openg2p.sandbox.net
   odk-central-mail:
     enabled: true
     # envVars:
-  odk-central-backend:
+  backend:
     envVars:
       OIDC_ISSUER_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
       OIDC_CLIENT_ID: openg2p-sr-odk
