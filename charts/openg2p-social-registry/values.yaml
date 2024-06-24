@@ -1,33 +1,26 @@
 global:
-  socialRegistryHostname: socialregistry.openg2p.sandbox.net
-  odkHostname: odk.openg2p.sandbox.net
-  opensearchHostname: opensearch.openg2p.sandbox.net
-  minioHostname: minio.openg2p.sandbox.net
-  keymanagerHostname: keymanager.openg2p.sandbox.net
-  esignetHostname: esignet.openg2p.sandbox.net
-  mailname: openg2p.sandbox.net
   sysAdminEmail: admin@openg2p.sandbox.net
-  reportingKafkaHostname: kafka.openg2p.sandbox.net
 
-  socialRegistryAuthClientId: 'openg2p-sr'
-  socialRegistryAuthClientSecret: ''
-
-  socialRegistryMailInstallationName: '{{ .Release.Name }}-mail'
-  socialRegistryOpensearchInstallationName: '{{ .Release.Name }}-opensearch'
-
+  # General Settings
   keycloakBaseUrl: https://keycloak.openg2p.sandbox.net
   keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/master'
 
-  socialRegistryKeymanagerInstallationName: '{{ .Release.Name }}-keymanager'
-  socialRegistryKeymanagerAuthClientId: '{{ tpl .Values.global.socialRegistryAuthClientId $ }}'
-  socialRegistryKeymanagerAuthClientSecret: '{{ tpl .Values.global.socialRegistryAuthClientSecret $ }}'
+  odkHostname: odk-sr.openg2p.sandbox.net
 
-  reportingInstallationName: '{{ .Release.Name }}-reporting'
-  reportingPostgresqlInstallationName: '{{ .Release.Name }}-postgresql'
-  reportingOpensearchInstallationName: '{{ tpl .Values.global.socialRegistryOpensearchInstallationName $ }}'
+hostname: socialregistry.openg2p.sandbox.net
 
 odoo:
   enabled: true
+
+  oidcIssuerUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
+  oidcClientId: 'openg2p-sr'
+  oidcClientSecret: ''
+
+  mailInstallationName: '{{ .Release.Name }}-mail'
+  keymanagerInstallationName: '{{ .Release.Name }}-keymanager'
+  keymanagerAuthClientId: '{{ tpl .Values.oidcClientId $ }}'
+  keymanagerAuthClientSecret: '{{ tpl .Values.oidcClientSecret $ }}'
+
   image:
     repository: openg2p/openg2p-social-registry-odoo-package
     tag: "17.0-develop-social-registry"
@@ -51,7 +44,7 @@ odoo:
         max_wal_senders = 20
         max_replication_slots = 10
     istio:
-      enabled: false
+      enabled: true
       virtualservice:
         enabled: true
         host: "*"
@@ -85,7 +78,7 @@ odoo:
     value: web,queue_job
   # not using bitnami smtpHost and smtpPort variables, because they need user and pass as well.
   - name: OPENG2P_SMTP_HOST
-    value: '{{ tpl .Values.global.socialRegistryMailInstallationName $ }}'
+    value: '{{ tpl .Values.mailInstallationName $ }}'
   - name: OPENG2P_SMTP_PORT
     value: "25"
   - name: LOG_HANDLER
@@ -93,16 +86,17 @@ odoo:
   - name: LOG_DB
     value: "False"
   - name: KEYMANAGER_API_BASE_URL
-    value: '{{ tpl .Values.global.socialRegistryKeymanagerInstallationName $ }}'
+    value: '{{ tpl .Values.keymanagerInstallationName $ }}'
   - name: KEYMANAGER_AUTH_URL
-    value: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/token'
+    value: '{{ tpl .Values.oidcIssuerUrl $ }}/protocol/openid-connect/token'
   - name: KEYMANAGER_AUTH_CLIENT_ID
-    value: '{{ tpl .Values.global.socialRegistryKeymanagerAuthClientId $ }}'
+    value: '{{ tpl .Values.keymanagerAuthClientId $ }}'
   - name: KEYMANAGER_AUTH_CLIENT_SECRET
-    value: '{{ tpl .Values.global.socialRegistryKeymanagerAuthClientSecret $ }}'
+    value: '{{ tpl .Values.keymanagerAuthClientSecret $ }}'
 
 keymanager:
   enabled: true
+  hostname: keymanager-sr.openg2p.sandbox.net
   springConfig:
     names: application,kernel
     profile: default
@@ -116,20 +110,21 @@ keymanager:
 
 mail:
   enabled: true
+  mailname: openg2p.sandbox.net
 
 odk-central:
-  enabled: false
+  enabled: true
   odk-central-mail:
-    enabled: false
+    # envVars:
   odk-central-backend:
     envVars:
-      EMAIL_HOST: '{{ tpl .Values.global.socialRegistryMailInstallationName $ }}'
       OIDC_ISSUER_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
       OIDC_CLIENT_ID: openg2p-sr-odk
       OIDC_CLIENT_SECRET: ""
 
 minio:
   enabled: true
+  hostname: minio-sr.openg2p.sandbox.net
   persistence:
     enabled: true
     size: 16Gi
@@ -176,11 +171,13 @@ minio:
         mode: SIMPLE
         credentialName: ""
 
-opensearch:
-  enabled: false
+loggingOpensearch:
+  enabled: true
+  nameOverride: logging-opensearch
+  hostname: opensearch-logging-sr.openg2p.sandbox.net
 
   oidcWellKnownConfigUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/.well-known/openid-configuration'
-  oidcClientId: openg2p-sr-opensearch
+  oidcClientId: openg2p-sr-logging-opensearch
   oidcClientSecret: ''
 
   master:
@@ -248,7 +245,7 @@ opensearch:
                 config:
                   subject_key: preferred_username
                   roles_key: groups
-                  openid_connect_url: '{{ tpl .Values.opensearch.oidcWellKnownConfigUrl $ }}'
+                  openid_connect_url: '{{ tpl .Values.loggingOpensearch.oidcWellKnownConfigUrl $ }}'
               authentication_backend:
                 type: noop
             kerberos_auth_domain:
@@ -298,10 +295,10 @@ opensearch:
           - openid
           multiple_auth_enabled: true
         openid:
-          connect_url: '{{ tpl .Values.opensearch.oidcWellKnownConfigUrl $ }}'
-          client_id: '{{ tpl .Values.opensearch.oidcClientId $ }}'
-          client_secret: '{{ tpl .Values.opensearch.oidcClientSecret $ }}'
-          base_redirect_url: 'https://{{ .Values.global.opensearchHostname }}'
+          connect_url: '{{ tpl .Values.loggingOpensearch.oidcWellKnownConfigUrl $ }}'
+          client_id: '{{ tpl .Values.loggingOpensearch.oidcClientId $ }}'
+          client_secret: '{{ tpl .Values.loggingOpensearch.oidcClientSecret $ }}'
+          base_redirect_url: 'https://{{ .Values.loggingOpensearch.hostname }}'
           logout_url: ""
         ui:
           openid:
@@ -318,16 +315,16 @@ opensearch:
           - kibana_read_only
 
   loggingOutput:
-    enabled: false
+    enabled: true
     type: opensearch
     scheme: https
-    host: '{{ include "common.names.fullname" .Subcharts.opensearch }}.{{ .Release.Namespace }}'
+    host: '{{ include "common.names.fullname" .Subcharts.loggingOpensearch }}.{{ .Release.Namespace }}'
     port: "9200"
     user: logstash
     passwordFrom:
       secretKeyRef:
         key: logstash-password
-        name: '{{ include "common.names.fullname" .Subcharts.opensearch }}'
+        name: '{{ include "common.names.fullname" .Subcharts.loggingOpensearch }}'
     extraConfig:
       ssl_verify: false
       logstash_format: true
@@ -341,7 +338,7 @@ opensearch:
       enabled: true
       host: ""
       gateway: "internal"
-      destination: '{{ include "common.names.fullname" .Subcharts.opensearch }}-dashboards'
+      destination: '{{ include "common.names.fullname" .Subcharts.loggingOpensearch }}-dashboards'
       destinationPort: "5601"
     gateway:
       enabled: false
@@ -356,18 +353,25 @@ opensearch:
         credentialName: ""
 
 reporting:
-  enabled: false
+  enabled: true
   kafka:
     enabled: true
   kafkaUi:
     enabled: true
+    hostname: kafka-reporting-sr.openg2p.sandbox.net
     oidcClientId: 'openg2p-sr-reporting-kafka'
     oidcClientSecret: ''
   opensearch:
-    enabled: false
+    enabled: true
+    hostname: opensearch-reporting-sr.openg2p.sandbox.net
+    oidcClientId: 'openg2p-sr-reporting-opensearch'
+    oidcClientSecret: ''
 
 reporting-init:
-  enabled: false
+  enabled: true
+  reportingInstallationName: '{{ .Release.Name }}-reporting'
+  opensearchInstallationName: '{{ .Release.Name }}-reporting-opensearch'
+  postgresqlInstallationName: '{{ .Release.Name }}-postgresql'
   gitConfig:
     enabled: true
     repoUrl: https://github.com/openg2p/openg2p-reporting
@@ -377,8 +381,9 @@ reporting-init:
     DB_NAME: socialregistrydb
 
 loggingFlow:
-  enabled: false
-  outputRef: '{{ tpl .Values.global.socialRegistryOpensearchInstallationName $ }}'
+  enabled: true
+  opensearchInstallationName: '{{ include "common.names.fullname" .Subcharts.loggingOpensearch }}'
+  outputRef: '{{ tpl .Values.loggingFlow.opensearchInstallationName $ }}'
   extraLocalOutputRefs: []
   globalOutputRefs: []
   parser:
