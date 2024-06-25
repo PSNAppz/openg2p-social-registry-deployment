@@ -9,7 +9,7 @@ superset:
   hostname: superset-sr.openg2p.sandbox.net
 
   oidcIssuerUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
-  oidcClientId: openg2p-sr-superset
+  oidcClientId: 'openg2p-sr-superset-{{ .Release.Namespace }}'
   oidcClientSecret: ''
 
   supersetSecretKey: ''
