@@ -27,7 +27,7 @@ odoo:
     type: ClusterIP
     port: 80
 
-  # TODO: Remove this and use global.sysAdminEmail
+  # TODO: Remove this and use global.sysAdminEmail. Check again
   odooEmail: admin@openg2p.org
 
   postgresql:
