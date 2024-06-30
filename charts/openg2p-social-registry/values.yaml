@@ -185,6 +185,7 @@ loggingOpensearch:
       size: 8Gi
     heapSize: 256m
     masterOnly: false
+    resourcesPreset: "micro"
 
   data:
     replicaCount: 0
