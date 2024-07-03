@@ -143,6 +143,7 @@ esignet:
   envVars:
     esignet_captcha_site_key: ''
     esignet_captcha_secret_key: ''
+
   mock-identity-system:
     enabled: true
     hostname: esignet-sr.openg2p.sandbox.net
@@ -154,6 +155,7 @@ esignet:
         repoUrl: https://github.com/openg2p/mosip-config
         branch: master
       rawConfig: ""
+
   springConfig:
     names: application,esignet
     profile: default

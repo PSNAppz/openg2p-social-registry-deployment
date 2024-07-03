@@ -10,7 +10,7 @@ odoo:
   enabled: true
 
   oidcIssuerUrl: '{{ tpl .Values.global.keycloakIssuerUrl $ }}'
-  oidcClientId: 'openg2p-sr'
+  oidcClientId: 'openg2p-sr-{{ .Release.Namespace }}'
   oidcClientSecret: ''
 
   mailInstallationName: '{{ .Release.Name }}-mail'
@@ -180,12 +180,12 @@ loggingOpensearch:
   oidcClientSecret: ''
 
   master:
-    replicaCount: 1
+    masterOnly: false
     persistence:
       size: 8Gi
+    replicaCount: 1
     heapSize: 256m
-    masterOnly: false
-    resourcesPreset: "micro"
+    resourcesPreset: "none"
 
   data:
     replicaCount: 0
