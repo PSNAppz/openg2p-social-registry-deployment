@@ -79,7 +79,7 @@ odoo:
   - name: OPENG2P_SMTP_PORT
     value: "25"
   - name: LOG_HANDLER
-    value: "[':INFO']"
+    value: '[":INFO"]'
   - name: LOG_DB
     value: "False"
   - name: KEYMANAGER_API_BASE_URL
