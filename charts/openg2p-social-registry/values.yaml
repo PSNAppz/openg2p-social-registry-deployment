@@ -27,7 +27,7 @@ odoo:
     type: ClusterIP
     port: 80
 
-  # TODO: Remove this and use global.sysAdminEmail. Check again
+  # TODO: Remove this and use global.sysAdminEmail
   odooEmail: admin@openg2p.org
 
   postgresql:
@@ -104,6 +104,12 @@ keymanager:
     rawConfig: ""
   envVars:
     auth_server_admin_allowed_audience: 'openg2p-sr,openg2p-sr-{{ .Release.Namespace }},openg2p-pbms,openg2p-pbms-{{ .Release.Namespace }},openg2p-spar-{{ .Release.Namespace }}'
+  postgresInit:
+    commonAnnotations:
+      "helm.sh/hook-weight": "0"
+  keygen:
+    commonAnnotations:
+      "helm.sh/hook-weight": "1"
 
 mail:
   enabled: true
@@ -269,6 +275,8 @@ loggingOpensearch:
     enabled: true
     replicaCount: 1
 
+    resourcesPreset: "none"
+
     extraVolumes:
     - name: dashboards-config
       configMap:
@@ -380,6 +388,8 @@ reporting-init:
     subDir: "scripts/social-registry"
   envVars:
     DB_NAME: socialregistrydb
+  hookAnnotations:
+    "helm.sh/hook-weight": "0"
 
 loggingFlow:
   enabled: true

@@ -144,6 +144,14 @@ esignet:
     esignet_captcha_site_key: ''
     esignet_captcha_secret_key: ''
 
+  postgresInit:
+    commonAnnotations:
+      "helm.sh/hook-weight": "0"
+
+  keygen:
+    commonAnnotations:
+      "helm.sh/hook-weight": "1"
+
   mock-identity-system:
     enabled: true
     hostname: esignet-sr.openg2p.sandbox.net
@@ -155,6 +163,12 @@ esignet:
         repoUrl: https://github.com/openg2p/mosip-config
         branch: master
       rawConfig: ""
+    postgresInit:
+      commonAnnotations:
+        "helm.sh/hook-weight": "0"
+    keygen:
+      commonAnnotations:
+        "helm.sh/hook-weight": "1"
 
   springConfig:
     names: application,esignet
