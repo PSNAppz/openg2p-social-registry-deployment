@@ -244,7 +244,7 @@ loggingOpensearch:
                 challenge: false
                 config:
                   subject_key: preferred_username
-                  roles_key: groups
+                  roles_key: client_roles
                   openid_connect_url: '{{ tpl .Values.loggingOpensearch.oidcWellKnownConfigUrl $ }}'
               authentication_backend:
                 type: noop
