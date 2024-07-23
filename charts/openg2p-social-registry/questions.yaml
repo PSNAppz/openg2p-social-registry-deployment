@@ -48,6 +48,7 @@ questions:
   description: Enable OIDC Login for ODK Central
   type: boolean
   label: Enable OIDC
+  group: ODK Central Settings
   show_if: "odk-central.enabled=true"
 
 - variable: odk-central.backend.envVars.OIDC_CLIENT_ID
