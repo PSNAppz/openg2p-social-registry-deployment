@@ -18,9 +18,11 @@ odoo:
   keymanagerAuthClientId: '{{ tpl .Values.oidcClientId $ }}'
   keymanagerAuthClientSecret: '{{ tpl .Values.oidcClientSecret $ }}'
 
+  extraAddonsUrlsToPull: ''
+
   image:
     repository: openg2p/openg2p-social-registry-odoo-package
-    tag: "17.0-develop-social-registry"
+    tag: 17.0-develop
     pullPolicy: Always
 
   service:
@@ -90,6 +92,8 @@ odoo:
     value: '{{ tpl .Values.keymanagerAuthClientId $ }}'
   - name: KEYMANAGER_AUTH_CLIENT_SECRET
     value: '{{ tpl .Values.keymanagerAuthClientSecret $ }}'
+  - name: EXTRA_ADDONS_URLS_TO_PULL
+    value: '{{ tpl .Values.extraAddonsUrlsToPull $ }}'
 
 keymanager:
   enabled: true
