@@ -17,7 +17,7 @@ dependencies:
   repository: oci://registry-1.docker.io/bitnamicharts
   condition: minio.enabled
 - name: odk-central
-  version: v2024.1.0
+  version: v2024.2.1
   repository: https://openg2p.github.io/openg2p-helm
   condition: odk-central.enabled
 - name: opensearch
