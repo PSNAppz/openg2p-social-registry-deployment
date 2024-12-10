@@ -193,7 +193,7 @@ openg2p-sr-bg-tasks:
       SR_CELERY_BEAT_DB_DBNAME: socialregistrydb
       SR_CELERY_BEAT_DB_PORT: 5432
       SR_CELERY_BEAT_DB_USERNAME: sruser
-      SR_CELERY_BEAT_DB_HOSTNAME: 'localhost'
+      SR_CELERY_BEAT_DB_HOSTNAME: '{{ .Release.Name }}-postgresql'
       SR_CELERY_BEAT_CELERY_BROKER_URL: redis://{{ .Release.Name }}-redis-master:6379/0
       SR_CELERY_BEAT_CELERY_BACKEND_URL: redis://{{ .Release.Name }}-redis-master:6379/0
       SR_CELERY_BEAT_MAX_ID_GENERATION_REQUEST_ATTEMPTS: 3
