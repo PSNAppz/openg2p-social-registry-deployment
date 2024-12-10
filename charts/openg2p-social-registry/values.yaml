@@ -43,7 +43,7 @@ odoo:
         max_wal_senders = 20
         max_replication_slots = 10
     istio:
-      enabled: false
+      enabled: true
       virtualservice:
         enabled: true
         host: "*"
